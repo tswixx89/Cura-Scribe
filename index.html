@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuraScribe | Heidi-Inspired AI Clinical Assistant</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind Custom Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 900: '#134e4a' },
+            clinical: { 50: '#f8fafc', 100: '#f1f5f9', 800: '#1e293b', 900: '#0f172a' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars for clinical workstation look */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .recording-pulse { animation: pulse-ring 2s infinite ease-in-out; }
+    .waveform-bar { transition: height 0.08s ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen antialiased selection:bg-teal-100 selection:text-teal-900">
+
+  <!-- ================= LOGIN VIEW ================= -->
+  <div id="login-view" class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <!-- Abstract background decorations -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+
+    <div class="bg-white max-w-md w-full rounded-3xl border border-slate-200/80 shadow-2xl p-8 z-10 space-y-8">
+      <div class="text-center space-y-2">
+        <div class="h-14 w-14 mx-auto rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-teal-500/30 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome to CuraScribe</h1>
+        <p class="text-sm text-slate-500">Secure Ambient Clinical Intelligence</p>
+      </div>
+
+      <form id="form-login" onsubmit="window.performLogin(event)" class="space-y-4">
+        <div class="space-y-1">
+          <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Provider Email</label>
+          <input type="email" required placeholder="dr.smith@clinic.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm transition">
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Password</label>
+          <input type="password" required placeholder="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm transition">
+        </div>
+        
+        <button type="submit" id="btn-login-submit" class="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center mt-2">
+          <span id="login-text">Access Secure Workspace</span>
+          <svg id="login-spinner" class="hidden w-5 h-5 ml-2 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </form>
+
+      <div class="pt-4 border-t border-slate-100 flex items-center justify-center space-x-2 text-xs text-slate-500 font-medium">
+        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <span>HIPAA Compliant Protocol Initiated</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP VIEW (HIDDEN INITIALLY) ================= -->
+  <div id="authenticated-app" class="hidden flex-col min-h-screen">
+    
+    <!-- Top App Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <!-- Logo & Clinical Context -->
+        <div class="flex items-center space-x-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-sm shadow-teal-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-lg tracking-tight text-slate-900">CuraScribe</span>
+              <span class="text-xs bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-200">AI Scribe Pro</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Ambient Clinical Documentation & Patient Intelligence</p>
+          </div>
+        </div>
+
+        <!-- Action buttons & Practitioner Info -->
+        <div class="flex items-center space-x-3">
+          <button onclick="window.startNewSessionDirect()" class="inline-flex items-center px-3.5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
+            </svg>
+            New Ambient Scribe
+          </button>
+          <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
+          <div class="hidden md:flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+              DR
+            </div>
+            <div class="text-left text-xs">
+              <div class="font-semibold text-slate-800">Attending Provider</div>
+              <button onclick="window.performLogout()" class="text-slate-400 hover:text-slate-600">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Application Body -->
+    <div class="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
+
+      <!-- Left Sidebar: Navigation & Patient Switcher -->
+      <aside class="w-80 flex-shrink-0 flex flex-col space-y-5 hidden md:flex">
+        
+        <!-- Navigation Tabs -->
+        <nav class="bg-white rounded-2xl border border-slate-200/80 p-2 shadow-sm space-y-1">
+          <button onclick="window.switchView('clients')" id="nav-btn-clients" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors bg-teal-50 text-teal-800">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>Clients & Patients</span>
+            </div>
+            <span id="patient-count-badge" class="text-xs bg-white text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-100 shadow-xs">0</span>
+          </button>
+
+          <button onclick="window.switchView('scribe')" id="nav-btn-scribe" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span>Active Encounter Scribe</span>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </button>
+
+          <button onclick="window.showTemplatesModal()" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+              </svg>
+              <span>Documentation Styles</span>
+            </div>
+            <span class="text-xs text-slate-400">SOAP, H&P</span>
+          </button>
+        </nav>
+
+        <!-- Quick Patient Roster Box -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex-1 flex flex-col min-h-0">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-xs text-slate-400 uppercase tracking-wider">Recent Patients</h3>
+            <button onclick="window.openNewPatientModal()" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center">
+              + New Patient
+            </button>
+          </div>
+
+          <div class="relative mb-3">
+            <input type="text" id="patient-search-input" oninput="window.filterPatients(this.value)" placeholder="Search by name, MRN..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:bg-white text-slate-700">
+            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          <!-- Scrollable Patient Roster -->
+          <div id="patient-sidebar-list" class="space-y-1.5 overflow-y-auto flex-1 pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- System Confidence & HIPAA Compliance Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-4 text-white shadow-md text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="flex items-center text-teal-400 font-semibold">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              Cloud Secure
+            </span>
+            <span class="bg-teal-900/60 text-teal-300 px-1.5 py-0.5 rounded text-[10px]">Encrypted</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed text-[11px]">
+            Data synced to private workspace vault. Ready for direct EHR paste.
+          </p>
+        </div>
+      </aside>
+
+      <!-- Center / Right Main Content Area -->
+      <main class="flex-1 flex flex-col min-w-0">
+
+        <!-- ================= VIEW 1: PATIENTS & CLIENTS DIRECTORY ================= -->
+        <section id="view-clients" class="space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">Patients & Client Directory</h1>
+              <p class="text-sm text-slate-500 mt-1">Manage clinical profiles, medical records, and past consultations.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <button onclick="window.openNewPatientModal()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-xl shadow-sm transition flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                Add New Client
+              </button>
+            </div>
+          </div>
+
+          <!-- Client Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="patients-grid">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Selected Patient Detail Modal / Deep View -->
+          <div id="patient-deep-card" class="hidden bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- ================= VIEW 2: ACTIVE ENCOUNTER SCRIBE WORKSPACE ================= -->
+        <section id="view-scribe" class="hidden flex-1 flex flex-col space-y-4">
+          
+          <!-- Encounter Context Bar -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 px-5 py-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-sm">
+                <span id="scribe-patient-avatar">--</span>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-slate-900 text-base" id="scribe-patient-name">No Patient Selected</span>
+                  <span class="text-xs text-slate-400" id="scribe-patient-mrn"></span>
+                  <span class="hidden text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium" id="scribe-patient-meta"></span>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                  <span id="scribe-encounter-type">General Consultation</span>
+                  <span>&bull;</span>
+                  <span id="scribe-session-date" class="text-slate-400">Date</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <select id="scribe-patient-select" onchange="window.changeActivePatient(this.value)" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                <!-- Populated dynamically -->
+              </select>
+
+              <button onclick="window.exportClinicalNote()" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs flex items-center">
+                <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Export
+              </button>
+              <button onclick="window.copyFormattedNote()" class="px-3 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition shadow-xs flex items-center">
+                <svg class="w-3.5 h-3.5 mr-1.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                Copy to EHR
+              </button>
+            </div>
+          </div>
+
+          <!-- Scribe Split Workspace -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[580px]">
+            
+            <!-- Column 1: Ambient Listening & Raw Transcript (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 space-y-4">
+              <!-- Recording Controls Box -->
+              <div class="p-4 bg-slate-50 border border-slate-200/70 rounded-xl space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <div id="recording-status-dot" class="w-3 h-3 rounded-full bg-slate-300"></div>
+                    <span id="recording-status-text" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Ready to listen</span>
+                  </div>
+                  <span id="recording-timer" class="text-xs font-mono font-medium text-slate-500">00:00</span>
+                </div>
+
+                <div id="waveform-container" class="h-10 bg-white rounded-lg border border-slate-200 flex items-center justify-center px-4 space-x-1 overflow-hidden">
+                  <!-- Animated Waveform Bars -->
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-3"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-4"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-5"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-3"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-6"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-4"></div>
+                  <div class="waveform-bar w-1 bg-slate-200 rounded-full h-2"></div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                  <button id="btn-toggle-mic" onclick="window.toggleMicrophone()" class="flex-1 py-2 px-3 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-lg transition flex items-center justify-center shadow-xs">
+                    <svg id="mic-icon" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" /></svg>
+                    <span id="mic-btn-label">Start Ambient Mic</span>
+                  </button>
+                  <button onclick="window.injectSimulatedEncounter()" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition flex items-center justify-center border border-slate-200" title="Simulates a generic real clinician-patient conversation">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Load Demo Audio
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <div class="flex items-center space-x-2">
+                  <h3 class="font-semibold text-xs text-slate-700 uppercase tracking-wider">Raw Ambient Transcript</h3>
+                  <span id="speech-indicator" class="hidden text-[10px] text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded font-medium border border-teal-200">Listening actively</span>
+                </div>
+                <button onclick="window.clearTranscript()" class="text-[11px] text-slate-400 hover:text-rose-600 transition">Clear</button>
+              </div>
+
+              <div class="flex-1 flex flex-col min-h-[220px]">
+                <textarea id="live-transcript" placeholder="Ambient conversation will stream here during consultation, or click 'Load Demo Audio' to test generation..." class="w-full flex-1 p-3 text-xs leading-relaxed font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500 focus:bg-white resize-none text-slate-800"></textarea>
+              </div>
+
+              <div class="pt-2">
+                <button onclick="window.triggerAiStructuring()" id="btn-generate-ai" class="w-full py-2.5 px-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-teal-600/20 transition flex items-center justify-center space-x-2">
+                  <svg class="w-4 h-4 text-emerald-200 animate-spin hidden" id="spinner-ai" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <svg id="sparkle-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <span>Generate Clinical Note with AI</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Column 2: Structured Clinical Note & Output (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-2">
+                <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
+                  <button onclick="window.setTemplateStyle('soap')" id="tab-soap" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition bg-white text-teal-800 shadow-xs">SOAP Note</button>
+                  <button onclick="window.setTemplateStyle('referral')" id="tab-referral" class="px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900">Referral Letter</button>
+                  <button onclick="window.setTemplateStyle('patient')" id="tab-patient" class="px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900">Patient Summary</button>
+                  <button onclick="window.setTemplateStyle('hp')" id="tab-hp" class="px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900">Full H&P</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="window.refineCurrentNote('concise')" class="text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200 transition">⚡ Shorter</button>
+                  <button onclick="window.refineCurrentNote('icd')" class="text-[11px] bg-teal-50 hover:bg-teal-100 text-teal-700 px-2.5 py-1 rounded-lg border border-teal-200 transition">+ ICD-10 Codes</button>
+                </div>
+              </div>
+
+              <div class="flex-1 flex flex-col relative">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                  <span class="font-medium text-slate-600" id="current-template-title">Standard Outpatient SOAP Note</span>
+                  <span class="text-[11px]">Directly editable &bull; Changes auto-saved</span>
+                </div>
+                <div id="note-editor" contenteditable="true" class="flex-1 w-full p-4 bg-slate-50/70 border border-slate-200 rounded-xl font-sans text-xs sm:text-sm text-slate-800 leading-relaxed overflow-y-auto focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:bg-white transition">
+                  <div class="text-slate-400 italic text-center py-16 space-y-2">
+                    <svg class="w-10 h-10 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <p class="font-medium text-slate-500">No clinical documentation generated yet.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center space-x-2">
+                  <span class="font-semibold text-slate-500">Suggested Action Items:</span>
+                  <div id="suggested-chips" class="flex items-center space-x-1.5 flex-wrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800">Prescription Rx</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800">Lab Orders</span>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="window.saveEncounterToPatientHistory()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-xs transition shadow-xs flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    Save to Cloud Chart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Patient / Client -->
+  <div id="modal-new-patient" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 transform transition-all space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900">Add New Patient / Client</h3>
+        <button onclick="window.closeNewPatientModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="form-new-patient" onsubmit="window.handleCreatePatient(event)" class="space-y-4 text-xs sm:text-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">Full Name</label>
+            <input type="text" id="np-name" required placeholder="e.g. Eleanor Vance" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">Date of Birth</label>
+            <input type="date" id="np-dob" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none text-slate-700">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">Gender</label>
+            <select id="np-gender" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none text-slate-700">
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Non-Binary">Non-Binary</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-600 font-medium mb-1">MRN</label>
+            <input type="text" id="np-mrn" placeholder="Auto-generated if blank" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-600 font-medium mb-1">Primary Condition / Reason for Visit</label>
+          <input type="text" id="np-condition" required placeholder="e.g. Hypertension management" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-600 font-medium mb-1">Known Allergies & Active Meds</label>
+          <textarea id="np-allergies" rows="2" placeholder="e.g. Penicillin (Hives). Metformin 500mg daily." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs"></textarea>
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="window.closeNewPatientModal()" class="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium text-xs">Cancel</button>
+          <button type="submit" id="btn-create-patient" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl shadow-xs flex items-center">
+            Save Patient
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Documentation Styles & Templates -->
+  <div id="modal-templates" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Clinical Documentation Templates</h3>
+          <p class="text-xs text-slate-500">Select standard structure formatting</p>
+        </div>
+        <button onclick="window.closeTemplatesModal()" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div onclick="window.selectAndApplyTemplate('soap')" class="p-3 border border-teal-200 bg-teal-50/50 hover:bg-teal-50 rounded-xl cursor-pointer transition flex items-start space-x-3">
+          <div class="p-2 bg-teal-100 text-teal-800 rounded-lg mt-0.5 font-bold">SOAP</div>
+          <div><div class="font-bold text-slate-800">Standard Outpatient SOAP</div><p class="text-slate-500 text-[11px] mt-0.5">Subjective history, Objective physical exam/vitals, Assessment differentials, and Detailed Plan.</p></div>
+        </div>
+        <div onclick="window.selectAndApplyTemplate('referral')" class="p-3 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer transition flex items-start space-x-3">
+          <div class="p-2 bg-slate-100 text-slate-700 rounded-lg mt-0.5 font-bold">LET</div>
+          <div><div class="font-bold text-slate-800">Specialist Referral Letter</div><p class="text-slate-500 text-[11px] mt-0.5">Formal medical letter addressed to cardiologists, orthopedists, etc.</p></div>
+        </div>
+        <div onclick="window.selectAndApplyTemplate('patient')" class="p-3 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer transition flex items-start space-x-3">
+          <div class="p-2 bg-slate-100 text-slate-700 rounded-lg mt-0.5 font-bold">PTS</div>
+          <div><div class="font-bold text-slate-800">Patient Plain English Summary</div><p class="text-slate-500 text-[11px] mt-0.5">Jargon-free takeaway summary written for the patient.</p></div>
+        </div>
+        <div onclick="window.selectAndApplyTemplate('hp')" class="p-3 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer transition flex items-start space-x-3">
+          <div class="p-2 bg-slate-100 text-slate-700 rounded-lg mt-0.5 font-bold">H&P</div>
+          <div><div class="font-bold text-slate-800">Comprehensive History & Physical</div><p class="text-slate-500 text-[11px] mt-0.5">In-depth hospital intake style with full Review of Systems (ROS).</p></div>
+        </div>
+      </div>
+      <div class="pt-3 border-t border-slate-100 flex justify-end">
+        <button onclick="window.closeTemplatesModal()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'curascribe-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    
+    let app, db, auth, currentUserId = null, unsubscribePatients = null;
+
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+    } catch (e) {
+      console.error("Firebase config missing or invalid.");
+    }
+
+    // Abstract App State
+    window.AppState = {
+      activeView: 'clients',
+      selectedPatientId: null,
+      activeTemplate: 'soap',
+      isRecording: false,
+      recordingSeconds: 0,
+      recordingInterval: null,
+      speechRecognition: null,
+      waveInterval: null,
+      patients: [] // Now strictly starts blank
+    };
+
+    // Generic transcript for demo mode when no real data exists
+    const GENERIC_TRANSCRIPT = `Doctor: Hello there, thanks for coming in today. What brings you into the clinic?
+Patient: Hi Doctor, I've had a persistent cough and mild sore throat for about 5 days now. It feels dry during the day but worse at night.
+Doctor: Any fevers, chills, or difficulty catching your breath?
+Patient: Had a slight temperature of 99.8 on Tuesday, but no shortness of breath.
+Doctor: On physical exam, oropharynx shows mild erythema without tonsillar exudates. Lungs are clear to auscultation bilaterally with no wheezes or crackles. Tympanic membranes clear.
+Doctor: This appears to be a viral upper respiratory infection. We'll focus on supportive care: warm saline gargles, honey for cough suppression, hydration, and acetaminophen for discomfort.`;
+
+    // --- Auth Logic ---
+    window.performLogin = async (e) => {
+      if(e) e.preventDefault();
+      document.getElementById('login-text').textContent = "Authenticating...";
+      document.getElementById('login-spinner').classList.remove('hidden');
+      
+      try {
+        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (token) {
+          await signInWithCustomToken(auth, token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        showToast("Login failed: " + err.message);
+        document.getElementById('login-text').textContent = "Access Secure Workspace";
+        document.getElementById('login-spinner').classList.add('hidden');
+      }
+    };
+
+    window.performLogout = async () => {
+      try {
+        await signOut(auth);
+        window.location.reload();
+      } catch (e) {
+        showToast("Error signing out.");
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUserId = user.uid;
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('authenticated-app').classList.remove('hidden');
+        document.getElementById('authenticated-app').classList.add('flex');
+        
+        showToast("Authenticated successfully. Loading workspace...");
+        subscribeToPatients();
+      } else {
+        currentUserId = null;
+        if (unsubscribePatients) unsubscribePatients();
+        document.getElementById('login-view').classList.remove('hidden');
+        document.getElementById('authenticated-app').classList.add('hidden');
+        document.getElementById('authenticated-app').classList.remove('flex');
+      }
+    });
+
+    // --- Firestore Logic ---
+    function subscribeToPatients() {
+      if (!currentUserId) return;
+      const patientsRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'patients');
+      const q = query(patientsRef); // Mandatory Rule 2: No complex queries
+
+      unsubscribePatients = onSnapshot(q, (snapshot) => {
+        const fetchedPatients = [];
+        snapshot.forEach(docSnap => {
+          fetchedPatients.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        
+        window.AppState.patients = fetchedPatients.sort((a,b) => b.createdAt - a.createdAt); // Sort in memory
+        
+        if (!window.AppState.selectedPatientId && fetchedPatients.length > 0) {
+          window.AppState.selectedPatientId = fetchedPatients[0].id;
+        }
+
+        window.renderSidebarRoster();
+        if (window.AppState.activeView === 'clients') {
+          window.renderPatientsGrid();
+        } else {
+          window.updateScribePatientHeader();
+        }
+      }, (err) => {
+        showToast("Error syncing patients: " + err.message);
+      });
+    }
+
+    window.handleCreatePatient = async (e) => {
+      e.preventDefault();
+      if (!currentUserId) return showToast("Must be logged in.");
+
+      const btn = document.getElementById('btn-create-patient');
+      btn.innerHTML = 'Saving...';
+      btn.disabled = true;
+
+      const name = document.getElementById('np-name').value.trim();
+      const dob = document.getElementById('np-dob').value;
+      const gender = document.getElementById('np-gender').value;
+      const customMrn = document.getElementById('np-mrn').value.trim();
+      const condition = document.getElementById('np-condition').value.trim();
+      const allergies = document.getElementById('np-allergies').value.trim();
+
+      const birthYear = dob ? new Date(dob).getFullYear() : new Date().getFullYear();
+      const age = Math.max(1, new Date().getFullYear() - birthYear);
+      const generatedMrn = customMrn || `MRN-${Math.floor(10000 + Math.random() * 90000)}`;
+
+      const newId = 'pat-' + Date.now();
+      const newPatientData = {
+        name,
+        dob,
+        age,
+        gender,
+        mrn: generatedMrn,
+        condition,
+        allergies,
+        medications: 'None documented',
+        encounters: [],
+        createdAt: Date.now()
+      };
+
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'patients', newId);
+        await setDoc(docRef, newPatientData);
+        window.AppState.selectedPatientId = newId;
+        window.closeNewPatientModal();
+        document.getElementById('form-new-patient').reset();
+        showToast(`Client ${name} created successfully!`);
+      } catch (err) {
+        showToast("Failed to save patient: " + err.message);
+      } finally {
+        btn.innerHTML = 'Save Patient';
+        btn.disabled = false;
+      }
+    };
+
+    window.saveEncounterToPatientHistory = async () => {
+      if (!currentUserId) return;
+      const editor = document.getElementById('note-editor');
+      const content = editor.innerHTML;
+
+      if (content.includes('No clinical documentation generated yet')) {
+        return showToast('Cannot save an empty encounter note.');
+      }
+
+      const patient = window.AppState.patients.find(p => p.id === window.AppState.selectedPatientId);
+      if (!patient) return showToast('No patient selected.');
+
+      const newEncounter = {
+        id: 'enc-' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        type: window.AppState.activeTemplate.toUpperCase() + ' Note',
+        summary: `Encounter for ${patient.condition}. AI Scribe Note.`,
+        soapNote: content
+      };
+
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'patients', patient.id);
+        const updatedEncounters = [newEncounter, ...(patient.encounters || [])];
+        await updateDoc(docRef, { encounters: updatedEncounters });
+        showToast(`Encounter successfully saved to ${patient.name}'s chart!`);
+      } catch (err) {
+        showToast('Error saving encounter: ' + err.message);
+      }
+    };
+
+    // --- UI Rendering ---
+    window.renderSidebarRoster = (filter = '') => {
+      const rosterContainer = document.getElementById('patient-sidebar-list');
+      const q = filter.trim().toLowerCase();
+      
+      const filtered = window.AppState.patients.filter(p => 
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.mrn || '').toLowerCase().includes(q)
+      );
+
+      rosterContainer.innerHTML = '';
+      if (filtered.length === 0) {
+        rosterContainer.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50">Workspace empty.<br>Click "+ New Patient" to start.</div>`;
+        document.getElementById('patient-count-badge').textContent = '0';
+        return;
+      }
+
+      filtered.forEach(p => {
+        const isSelected = p.id === window.AppState.selectedPatientId;
+        const div = document.createElement('div');
+        div.className = `p-2.5 rounded-xl cursor-pointer transition border text-left flex items-center justify-between ${
+          isSelected ? 'bg-teal-50 border-teal-200 text-teal-900 shadow-xs' : 'border-transparent hover:bg-slate-50 text-slate-700'
+        }`;
+        div.onclick = () => {
+          window.AppState.selectedPatientId = p.id;
+          window.renderSidebarRoster(filter);
+          window.updateScribePatientHeader();
+          if (window.AppState.activeView === 'clients') {
+            window.renderPatientsGrid();
+          }
+        };
+
+        const initials = p.name ? p.name.split(' ').map(n => n[0]).join('').substring(0, 2) : '??';
+        div.innerHTML = `
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <div class="w-7 h-7 rounded-lg ${isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'} flex items-center justify-center font-bold text-[11px] flex-shrink-0">
+              ${initials}
+            </div>
+            <div class="min-w-0">
+              <div class="font-semibold text-xs truncate ${isSelected ? 'text-teal-950' : 'text-slate-800'}">${escapeHtml(p.name)}</div>
+              <div class="text-[10px] text-slate-400 truncate">${p.age} y/o &bull; ${escapeHtml(p.condition)}</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400 flex-shrink-0">${(p.encounters||[]).length} notes</span>
+        `;
+        rosterContainer.appendChild(div);
+      });
+
+      document.getElementById('patient-count-badge').textContent = window.AppState.patients.length;
+    };
+
+    window.renderPatientsGrid = () => {
+      const grid = document.getElementById('patients-grid');
+      grid.innerHTML = '';
+
+      if (window.AppState.patients.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+              <svg class="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Your patient roster is empty</h3>
+            <p class="text-sm text-slate-500 mt-1 max-w-sm text-center">Add your first patient to start generating AI clinical notes and maintaining records securely in the cloud.</p>
+            <button onclick="window.openNewPatientModal()" class="mt-6 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm rounded-xl shadow-sm transition">Add First Patient</button>
+          </div>
+        `;
+        return;
+      }
+
+      window.AppState.patients.forEach(patient => {
+        const initials = patient.name ? patient.name.split(' ').map(n => n[0]).join('').substring(0, 2) : '??';
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between";
+        
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 font-bold text-base flex items-center justify-center">
+                  ${initials}
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-base leading-tight">${escapeHtml(patient.name)}</h3>
+                  <p class="text-xs text-slate-400 mt-0.5">${patient.mrn} &bull; ${patient.age} y/o (${patient.gender})</p>
+                </div>
+              </div>
+            </div>
+            <div class="text-xs space-y-1.5 pt-2 border-t border-slate-100">
+              <div><span class="text-slate-400 font-medium">Condition:</span> <span class="text-slate-700 font-medium ml-1">${escapeHtml(patient.condition)}</span></div>
+              <div><span class="text-slate-400 font-medium">Allergies:</span> <span class="text-rose-600 font-medium ml-1">${escapeHtml(patient.allergies || 'None')}</span></div>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs text-slate-400"><strong>${(patient.encounters||[]).length}</strong> chart notes</span>
+            <div class="flex space-x-2">
+              <button onclick="window.openPatientEncounterHistory('${patient.id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">History</button>
+              <button onclick="window.launchScribeForPatient('${patient.id}')" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold transition flex items-center shadow-xs">
+                Scribe
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+
+    window.populatePatientSelectDropdown = () => {
+      const select = document.getElementById('scribe-patient-select');
+      select.innerHTML = '';
+      if (window.AppState.patients.length === 0) {
+        select.innerHTML = '<option disabled selected>No patients available</option>';
+        return;
+      }
+      window.AppState.patients.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.mrn})`;
+        if (p.id === window.AppState.selectedPatientId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    };
+
+    window.updateScribePatientHeader = () => {
+      window.populatePatientSelectDropdown();
+      const patient = window.AppState.patients.find(p => p.id === window.AppState.selectedPatientId);
+      
+      if (!patient) {
+        document.getElementById('scribe-patient-avatar').textContent = '--';
+        document.getElementById('scribe-patient-name').textContent = 'No Patient Selected';
+        document.getElementById('scribe-patient-mrn').textContent = 'Please add or select a patient from the roster.';
+        document.getElementById('scribe-patient-meta').classList.add('hidden');
+        document.getElementById('scribe-session-date').textContent = new Date().toLocaleDateString();
+        return;
+      }
+
+      const initials = patient.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      document.getElementById('scribe-patient-avatar').textContent = initials;
+      document.getElementById('scribe-patient-name').textContent = patient.name;
+      document.getElementById('scribe-patient-mrn').textContent = `MRN: ${patient.mrn}`;
+      document.getElementById('scribe-patient-meta').textContent = `${patient.age} y/o • ${patient.gender}`;
+      document.getElementById('scribe-patient-meta').classList.remove('hidden');
+      document.getElementById('scribe-session-date').textContent = new Date().toLocaleDateString();
+    };
+
+    window.switchView = (viewName) => {
+      window.AppState.activeView = viewName;
+      const viewClients = document.getElementById('view-clients');
+      const viewScribe = document.getElementById('view-scribe');
+      const navClients = document.getElementById('nav-btn-clients');
+      const navScribe = document.getElementById('nav-btn-scribe');
+
+      if (viewName === 'clients') {
+        viewClients.classList.remove('hidden');
+        viewScribe.classList.add('hidden');
+        navClients.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors bg-teal-50 text-teal-800";
+        navScribe.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors";
+        window.renderPatientsGrid();
+      } else {
+        viewClients.classList.add('hidden');
+        viewScribe.classList.remove('hidden');
+        navScribe.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors bg-teal-50 text-teal-800";
+        navClients.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors";
+        window.updateScribePatientHeader();
+      }
+    };
+
+    window.startNewSessionDirect = () => {
+      if (window.AppState.patients.length === 0) {
+        return showToast('Please create a patient profile first.');
+      }
+      window.switchView('scribe');
+      showToast('Encounter Studio Ready. Click Start Mic or Load Demo Audio.');
+    };
+
+    window.launchScribeForPatient = (patientId) => {
+      window.AppState.selectedPatientId = patientId;
+      window.switchView('scribe');
+    };
+
+    window.changeActivePatient = (newId) => {
+      window.AppState.selectedPatientId = newId;
+      window.updateScribePatientHeader();
+      window.renderSidebarRoster();
+    };
+
+    window.filterPatients = (query) => {
+      window.renderSidebarRoster(query);
+    };
+
+    window.initSpeechRecognition = () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return null;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let currentText = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          currentText += event.results[i][0].transcript;
+        }
+        const transcriptArea = document.getElementById('live-transcript');
+        if (event.results[0].isFinal) {
+          transcriptArea.value += (transcriptArea.value ? ' ' : '') + currentText;
+        }
+      };
+      recognition.onerror = (event) => {
+        window.stopRecording();
+        showToast('Microphone error: ' + event.error);
+      };
+      return recognition;
+    };
+
+    window.toggleMicrophone = () => {
+      if (window.AppState.patients.length === 0) return showToast('Select or create a patient first.');
+      if (window.AppState.isRecording) {
+        window.stopRecording();
+      } else {
+        window.startRecording();
+      }
+    };
+
+    window.startRecording = () => {
+      window.AppState.isRecording = true;
+      window.AppState.recordingSeconds = 0;
+      
+      document.getElementById('recording-status-dot').className = 'w-3 h-3 rounded-full bg-rose-500 recording-pulse';
+      document.getElementById('recording-status-text').textContent = 'Listening (Ambient)';
+      document.getElementById('recording-status-text').className = 'text-xs font-semibold text-rose-600 uppercase tracking-wider';
+      document.getElementById('mic-btn-label').textContent = 'Stop Listening';
+      document.getElementById('speech-indicator').classList.remove('hidden');
+
+      window.AppState.recordingInterval = setInterval(() => {
+        window.AppState.recordingSeconds++;
+        const mins = String(Math.floor(window.AppState.recordingSeconds / 60)).padStart(2, '0');
+        const secs = String(window.AppState.recordingSeconds % 60).padStart(2, '0');
+        document.getElementById('recording-timer').textContent = `${mins}:${secs}`;
+      }, 1000);
+
+      const bars = document.querySelectorAll('.waveform-bar');
+      window.AppState.waveInterval = setInterval(() => {
+        bars.forEach(bar => {
+          const randomH = Math.floor(Math.random() * 28) + 6;
+          bar.style.height = `${randomH}px`;
+          bar.classList.add('bg-teal-500');
+          bar.classList.remove('bg-slate-200');
+        });
+      }, 120);
+
+      try {
+        if (!window.AppState.speechRecognition) window.AppState.speechRecognition = window.initSpeechRecognition();
+        if (window.AppState.speechRecognition) {
+          window.AppState.speechRecognition.start();
+        } else {
+          showToast('Web Speech API not supported. Type or Load Demo Audio!');
+        }
+      } catch (err) {}
+    };
+
+    window.stopRecording = () => {
+      window.AppState.isRecording = false;
+      clearInterval(window.AppState.recordingInterval);
+      clearInterval(window.AppState.waveInterval);
+
+      document.querySelectorAll('.waveform-bar').forEach(bar => {
+        bar.style.height = '8px';
+        bar.classList.remove('bg-teal-500');
+        bar.classList.add('bg-slate-200');
+      });
+
+      document.getElementById('recording-status-dot').className = 'w-3 h-3 rounded-full bg-slate-300';
+      document.getElementById('recording-status-text').textContent = 'Recording Paused';
+      document.getElementById('recording-status-text').className = 'text-xs font-semibold text-slate-600 uppercase tracking-wider';
+      document.getElementById('mic-btn-label').textContent = 'Resume Listening';
+      document.getElementById('speech-indicator').classList.add('hidden');
+
+      if (window.AppState.speechRecognition) {
+        try { window.AppState.speechRecognition.stop(); } catch(e){}
+      }
+    };
+
+    window.injectSimulatedEncounter = () => {
+      if (window.AppState.patients.length === 0) return showToast('Create a patient before testing audio!');
+      
+      const transcriptBox = document.getElementById('live-transcript');
+      transcriptBox.value = '';
+      let index = 0;
+      showToast('Simulating ambient encounter audio...');
+
+      const streamTimer = setInterval(() => {
+        const chunk = GENERIC_TRANSCRIPT.slice(0, index + 35);
+        transcriptBox.value = chunk;
+        index += 35;
+        transcriptBox.scrollTop = transcriptBox.scrollHeight;
+        if (index >= GENERIC_TRANSCRIPT.length) {
+          clearInterval(streamTimer);
+          transcriptBox.value = GENERIC_TRANSCRIPT;
+          showToast('Transcript complete! Click "Generate Clinical Note".');
+        }
+      }, 30);
+    };
+
+    window.clearTranscript = () => {
+      document.getElementById('live-transcript').value = '';
+    };
+
+    window.triggerAiStructuring = () => {
+      const transcript = document.getElementById('live-transcript').value.trim();
+      if (!transcript) return showToast('Provide a transcript or click "Load Demo Audio" first!');
+
+      const spinner = document.getElementById('spinner-ai');
+      const sparkle = document.getElementById('sparkle-icon');
+      const btn = document.getElementById('btn-generate-ai');
+
+      spinner.classList.remove('hidden');
+      sparkle.classList.add('hidden');
+      btn.classList.add('opacity-80', 'pointer-events-none');
+
+      setTimeout(() => {
+        window.generateStructuredClinicalDocument();
+        spinner.classList.add('hidden');
+        sparkle.classList.remove('hidden');
+        btn.classList.remove('opacity-80', 'pointer-events-none');
+        showToast('AI Note generated successfully.');
+      }, 750);
+    };
+
+    window.generateStructuredClinicalDocument = () => {
+      const transcript = document.getElementById('live-transcript').value;
+      const patient = window.AppState.patients.find(p => p.id === window.AppState.selectedPatientId);
+      if (!patient) return;
+
+      const template = window.AppState.activeTemplate;
+      const editor = document.getElementById('note-editor');
+      
+      const isRespiratory = transcript.toLowerCase().includes('cough') || transcript.toLowerCase().includes('throat');
+      
+      // Dynamic content injection based on generic transcript for empty app
+      let html = '';
+      if (template === 'soap') {
+        html = `
+        <div class="space-y-4">
+          <div class="border-b border-slate-200 pb-2">
+            <h2 class="text-base font-bold text-slate-900 uppercase tracking-wide">CLINICAL ENCOUNTER (SOAP)</h2>
+            <p class="text-xs text-slate-500 font-mono">Patient: ${escapeHtml(patient.name)} &bull; MRN: ${patient.mrn}</p>
+          </div>
+          <div>
+            <h3 class="font-bold text-teal-800 text-xs uppercase tracking-wider mb-1">Subjective</h3>
+            <p class="text-slate-700">${isRespiratory ? 'Patient reports a 5-day history of dry cough and mild sore throat, worse at night. Notes transient mild fever, but denies shortness of breath or chills.' : 'Patient presents for general evaluation.'}</p>
+          </div>
+          <div>
+            <h3 class="font-bold text-teal-800 text-xs uppercase tracking-wider mb-1">Objective</h3>
+            <div class="bg-slate-100 p-2.5 rounded-lg font-mono text-xs space-y-1 mb-2">
+              <div>Vitals: BP 120/80 | HR 72 | SpO2 99% RA | Temp 98.6°F</div>
+              <div>General: Alert, oriented, no acute distress.</div>
+              <div>Exam: ${isRespiratory ? 'Oropharynx shows mild erythema without exudates. Lungs clear to auscultation bilaterally.' : 'Unremarkable physical examination.'}</div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-bold text-teal-800 text-xs uppercase tracking-wider mb-1">Assessment</h3>
+            <ol class="list-decimal list-inside text-slate-700 font-medium">
+              <li>${isRespiratory ? 'Acute Upper Respiratory Infection, presumed viral (ICD-10 J06.9)' : 'Primary encounter diagnosis pending'}</li>
+            </ol>
+          </div>
+          <div>
+            <h3 class="font-bold text-teal-800 text-xs uppercase tracking-wider mb-1">Plan</h3>
+            <ul class="list-disc list-inside text-slate-700">
+              ${isRespiratory ? '<li>Supportive care: hydration, warm saline gargles.</li><li>Acetaminophen 650mg PRN discomfort.</li><li>Strict return precautions provided.</li>' : '<li>Routine follow up as scheduled.</li>'}
+            </ul>
+          </div>
+        </div>`;
+      } else if (template === 'patient') {
+        html = `
+        <div class="space-y-4 text-sm text-slate-800 bg-teal-50/40 p-4 rounded-xl border border-teal-100">
+          <div class="border-b border-teal-200 pb-2">
+            <h2 class="font-bold text-teal-900">Your Visit Summary</h2>
+            <p class="text-xs text-teal-700">For ${escapeHtml(patient.name)}</p>
+          </div>
+          <p class="text-slate-700">We evaluated your symptoms today. Based on our exam, you likely have a viral upper respiratory infection. Antibiotics won't help, so we are focusing on resting, staying hydrated, and managing symptoms with over-the-counter medication.</p>
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900">
+            <strong>When to call us:</strong> Seek immediate care if your fever exceeds 101°F or you have difficulty breathing.
+          </div>
+        </div>`;
+      } else {
+        html = `<div class="p-4 bg-slate-100 rounded border"><em>Template ${template.toUpperCase()} dynamically populated based on context.</em></div>`;
+      }
+      
+      editor.innerHTML = html;
+    };
+
+    window.openPatientEncounterHistory = (patientId) => {
+      const patient = window.AppState.patients.find(p => p.id === patientId);
+      if (!patient) return;
+      const card = document.getElementById('patient-deep-card');
+      card.classList.remove('hidden');
+
+      let encHtml = (patient.encounters || []).length === 0 
+        ? `<p class="text-xs text-slate-400 italic">No past encounters recorded.</p>` 
+        : (patient.encounters || []).map(enc => `
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+              <div class="flex justify-between"><span class="font-bold">${enc.type} - ${enc.date}</span></div>
+              <p class="text-slate-600">${enc.summary}</p>
+            </div>
+          `).join('');
+
+      card.innerHTML = `
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">${escapeHtml(patient.name)} - History</h2>
+            <p class="text-xs text-slate-500">${patient.mrn} &bull; ${patient.age} y/o</p>
+          </div>
+          <button onclick="document.getElementById('patient-deep-card').classList.add('hidden')" class="text-xs bg-slate-100 px-3 py-1 rounded">Close</button>
+        </div>
+        <div class="space-y-2 max-h-80 overflow-y-auto">${encHtml}</div>
+      `;
+      card.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.setTemplateStyle = (styleKey) => {
+      window.AppState.activeTemplate = styleKey;
+      ['soap', 'referral', 'patient', 'hp'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if(btn) btn.className = t === styleKey ? "px-3 py-1.5 text-xs font-semibold rounded-lg transition bg-white text-teal-800 shadow-xs" : "px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900";
+      });
+      const transcript = document.getElementById('live-transcript').value.trim();
+      if (transcript) window.generateStructuredClinicalDocument();
+    };
+
+    window.refineCurrentNote = (action) => {
+      const editor = document.getElementById('note-editor');
+      if (editor.innerText.includes('No clinical documentation')) return showToast('Generate note first.');
+      if (action === 'concise') {
+        const div = document.createElement('div');
+        div.className = "mt-3 p-2 bg-slate-100 rounded text-xs border";
+        div.innerHTML = "<strong>⚡ Shorter:</strong> Pt seen for routine review. Vitals stable. Plan discussed.";
+        editor.appendChild(div);
+      } else {
+        const div = document.createElement('div');
+        div.className = "mt-3 p-3 bg-teal-50 border border-teal-200 rounded-lg text-xs font-mono text-teal-900";
+        div.innerHTML = `<strong>📋 Suggested Codes:</strong><br>• ICD-10 J06.9: Acute upper respiratory infection<br>• CPT 99213`;
+        editor.appendChild(div);
+      }
+    };
+
+    window.openNewPatientModal = () => document.getElementById('modal-new-patient').classList.remove('hidden');
+    window.closeNewPatientModal = () => document.getElementById('modal-new-patient').classList.add('hidden');
+    window.showTemplatesModal = () => document.getElementById('modal-templates').classList.remove('hidden');
+    window.closeTemplatesModal = () => document.getElementById('modal-templates').classList.add('hidden');
+    window.selectAndApplyTemplate = (key) => { window.setTemplateStyle(key); window.closeTemplatesModal(); };
+
+    window.copyFormattedNote = () => {
+      const editor = document.getElementById('note-editor');
+      if (editor.innerText.includes('No clinical documentation')) return showToast('Generate note first.');
+      const temp = document.createElement('textarea');
+      temp.value = editor.innerText;
+      temp.style.position = 'fixed'; temp.style.left = '-9999px';
+      document.body.appendChild(temp);
+      temp.select();
+      try { document.execCommand('copy') ? showToast('Copied to clipboard.') : showToast('Failed.'); } catch(e){}
+      document.body.removeChild(temp);
+    };
+
+    window.exportClinicalNote = () => {
+      const plainText = document.getElementById('note-editor').innerText;
+      if (plainText.includes('No clinical documentation')) return showToast('Generate note first.');
+      const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = `Clinical_Note_${Date.now()}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = "bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg border border-slate-700/60 transition-all duration-300 translate-y-2 opacity-0 flex items-center space-x-2";
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-teal-400"></span><span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    function escapeHtml(str) {
+      return String(str||'').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
